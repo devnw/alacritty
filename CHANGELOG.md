@@ -8,7 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Notable changes to the `alacritty_terminal` crate are documented in its
 [CHANGELOG](./alacritty_terminal/CHANGELOG.md).
 
-## 0.14.0-dev
+## 0.15.0-dev
+
+## 0.14.0
 
 ### Packaging
 
@@ -18,7 +20,6 @@ Notable changes to the `alacritty_terminal` crate are documented in its
 
 - Support relative path imports from config files
 - `alacritty migrate` support for TOML configuration changes
-- Support for Unicode 16 characters
 - Headless mode using `alacritty --daemon`
 
 ### Changed
