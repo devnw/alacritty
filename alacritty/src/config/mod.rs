@@ -31,7 +31,7 @@ use crate::cli::Options;
 #[cfg(test)]
 pub use crate::config::bindings::Binding;
 pub use crate::config::bindings::{
-    Action, BindingKey, BindingMode, MouseAction, SearchAction, ViAction,
+    Action, BindingKey, BindingMode, KeyBinding, MouseAction, SearchAction, ViAction,
 };
 pub use crate::config::ui_config::UiConfig;
 use crate::logging::LOG_TARGET_CONFIG;
@@ -162,9 +162,6 @@ pub fn reload(config_path: &Path, options: &mut Options) -> Result<UiConfig> {
 fn after_loading(config: &mut UiConfig, options: &mut Options) {
     // Override config with CLI options.
     options.override_config(config);
-
-    // Create key bindings for regex hints.
-    config.generate_hint_bindings();
 }
 
 /// Load configuration file and log errors.
@@ -377,13 +374,8 @@ pub fn installed_config(suffix: &str) -> Option<PathBuf> {
 
     // Try using XDG location by default.
     xdg::BaseDirectories::with_prefix("alacritty")
-        .ok()
-        .and_then(|xdg| xdg.find_config_file(&file_name))
-        .or_else(|| {
-            xdg::BaseDirectories::new()
-                .ok()
-                .and_then(|fallback| fallback.find_config_file(&file_name))
-        })
+        .find_config_file(&file_name)
+        .or_else(|| xdg::BaseDirectories::new().find_config_file(&file_name))
         .or_else(|| {
             if let Ok(home) = env::var("HOME") {
                 // Fallback path: $HOME/.config/alacritty/alacritty.toml.
