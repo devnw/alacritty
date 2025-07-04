@@ -458,7 +458,7 @@ impl Display {
             config.window.dynamic_padding && config.window.dimensions().is_none(),
         );
 
-        info!("Cell size: {} x {}", cell_width, cell_height);
+        info!("Cell size: {cell_width} x {cell_height}");
         info!("Padding: {} x {}", size_info.padding_x(), size_info.padding_y());
         info!("Width: {}, Height: {}", size_info.width(), size_info.height());
 
@@ -511,7 +511,7 @@ impl Display {
 
         // Disable vsync.
         if let Err(err) = surface.set_swap_interval(&context, SwapInterval::DontWait) {
-            info!("Failed to disable vsync: {}", err);
+            info!("Failed to disable vsync: {err}");
         }
 
         Ok(Self {
@@ -618,7 +618,7 @@ impl Display {
             (surface, context) => surface.swap_buffers(context),
         };
         if let Err(err) = res {
-            debug!("error calling swap_buffers: {}", err);
+            debug!("error calling swap_buffers: {err}");
         }
     }
 
@@ -674,7 +674,7 @@ impl Display {
             cell_width = cell_dimensions.0;
             cell_height = cell_dimensions.1;
 
-            info!("Cell size: {} x {}", cell_width, cell_height);
+            info!("Cell size: {cell_width} x {cell_height}");
 
             // Mark entire terminal as damaged since glyph size could change without cell size
             // changes.
@@ -862,7 +862,7 @@ impl Display {
                     let hyperlink = cell.extra.as_ref().and_then(|extra| extra.hyperlink.as_ref());
 
                     let should_highlight = |hint: &Option<HintMatch>| {
-                        hint.as_ref().map_or(false, |hint| hint.should_highlight(point, hyperlink))
+                        hint.as_ref().is_some_and(|hint| hint.should_highlight(point, hyperlink))
                     };
                     if should_highlight(highlighted_hint) || should_highlight(vi_highlighted_hint) {
                         damage_tracker.frame().damage_point(cell.point);
@@ -1097,7 +1097,7 @@ impl Display {
         if highlighted_hint.is_some() {
             // If mouse changed the line, we should update the hyperlink preview, since the
             // highlighted hint could be disrupted by the old preview.
-            dirty = self.hint_mouse_point.map_or(false, |p| p.line != point.line);
+            dirty = self.hint_mouse_point.is_some_and(|p| p.line != point.line);
             self.hint_mouse_point = Some(point);
             self.window.set_mouse_cursor(CursorIcon::Pointer);
         } else if self.highlighted_hint.is_some() {
