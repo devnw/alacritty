@@ -328,6 +328,10 @@ pub enum ViAction {
     InlineSearchNext,
     /// Jump to the previous inline search match.
     InlineSearchPrevious,
+    /// Search forward for selection or word under the cursor.
+    SemanticSearchForward,
+    /// Search backward for selection or word under the cursor.
+    SemanticSearchBackward,
 }
 
 /// Search mode specific actions.
@@ -449,11 +453,11 @@ pub fn default_key_bindings() -> Vec<KeyBinding> {
         F2,         ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\x1bOQ".into());
         F3,         ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\x1bOR".into());
         F4,         ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\x1bOS".into());
-        Tab,       ModifiersState::SHIFT,   ~BindingMode::VI,   ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC; Action::Esc("\x1b[Z".into());
-        Tab,       ModifiersState::SHIFT | ModifiersState::ALT, ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC; Action::Esc("\x1b\x1b[Z".into());
+        Tab,       ModifiersState::SHIFT,   ~BindingMode::VI,   ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\x1b[Z".into());
+        Tab,       ModifiersState::SHIFT | ModifiersState::ALT, ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\x1b\x1b[Z".into());
         Backspace, ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC; Action::Esc("\x7f".into());
-        Backspace, ModifiersState::ALT,     ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC; Action::Esc("\x1b\x7f".into());
-        Backspace, ModifiersState::SHIFT,   ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC; Action::Esc("\x7f".into());
+        Backspace, ModifiersState::ALT,     ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\x1b\x7f".into());
+        Backspace, ModifiersState::SHIFT,   ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\x7f".into());
         Enter => KeyLocation::Numpad, ~BindingMode::VI, ~BindingMode::SEARCH, ~BindingMode::REPORT_ALL_KEYS_AS_ESC, ~BindingMode::DISAMBIGUATE_ESC_CODES; Action::Esc("\n".into());
         // Vi mode.
         Space, ModifiersState::SHIFT | ModifiersState::CONTROL, ~BindingMode::SEARCH; Action::ToggleViMode;
@@ -474,6 +478,10 @@ pub fn default_key_bindings() -> Vec<KeyBinding> {
         "y",                                +BindingMode::VI, ~BindingMode::SEARCH; Action::ClearSelection;
         "/",                                +BindingMode::VI, ~BindingMode::SEARCH; Action::SearchForward;
         "?",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; Action::SearchBackward;
+        "y",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViAction::ToggleNormalSelection;
+        "y",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::Last;
+        "y",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; Action::Copy;
+        "y",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; Action::ClearSelection;
         "v",                                +BindingMode::VI, ~BindingMode::SEARCH; ViAction::ToggleNormalSelection;
         "v",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViAction::ToggleLineSelection;
         "v",      ModifiersState::CONTROL,  +BindingMode::VI, ~BindingMode::SEARCH; ViAction::ToggleBlockSelection;
@@ -488,6 +496,8 @@ pub fn default_key_bindings() -> Vec<KeyBinding> {
         "t",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViAction::InlineSearchBackwardShort;
         ";",                                +BindingMode::VI, ~BindingMode::SEARCH; ViAction::InlineSearchNext;
         ",",                                +BindingMode::VI, ~BindingMode::SEARCH; ViAction::InlineSearchPrevious;
+        "*",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViAction::SemanticSearchForward;
+        "#",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViAction::SemanticSearchBackward;
         "k",                                +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::Up;
         "j",                                +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::Down;
         "h",                                +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::Left;
@@ -511,6 +521,8 @@ pub fn default_key_bindings() -> Vec<KeyBinding> {
         "w",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::WordRight;
         "e",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::WordRightEnd;
         "%",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::Bracket;
+        "{",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::ParagraphUp;
+        "}",      ModifiersState::SHIFT,    +BindingMode::VI, ~BindingMode::SEARCH; ViMotion::ParagraphDown;
         Enter,                              +BindingMode::VI, +BindingMode::SEARCH; SearchAction::SearchConfirm;
         // Plain search.
         Escape,                             +BindingMode::SEARCH; SearchAction::SearchCancel;
